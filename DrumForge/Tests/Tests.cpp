@@ -1,3 +1,6 @@
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include "../Source/PluginProcessor.h"
 #include <cmath>
 #include <cstdio>
@@ -59,7 +62,7 @@ int main()
             p.processBlock (b, midi);
             if (blk > 20)
                 for (int i = 0; i < bs; ++i)
-                    maxErr = std::max (maxErr, (double) std::abs (b.getSample (0, i) - sig (n0 + i - lat)));
+                    { const double e = std::abs ((double) b.getSample (0, i) - (double) sig (n0 + i - lat)); if (e > maxErr) maxErr = e; }
             n0 += bs;
         }
         std::printf ("      latencia=%d muestras, error max=%g\n", lat, maxErr);
@@ -96,7 +99,7 @@ int main()
             b.clear();
             if (blk == 2) for (int i = 0; i < 200; ++i) { auto v = 0.9f * std::exp (-i / 60.0f); b.setSample (0, i, v); b.setSample (1, i, v); }
             p.processBlock (b, midi);
-            peak = std::max (peak, b.getMagnitude (0, bs));
+            { const float m = b.getMagnitude (0, bs); if (m > peak) peak = m; }
         }
         CHECK (peak > 0.05f, "el golpe produce salida audible");
         CHECK (p.getPeakIn() >= 0.0f && p.getPeakOut() >= 0.0f, "medidores validos");
